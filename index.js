@@ -1,6 +1,7 @@
 import express from "express";
 import { config } from "dotenv";
 import { createSlug, getLinkAmount, getSlugUrl, isSlugExists } from "./functions/linkOperations.js";
+import { rateLimit } from "express-rate-limit";
 
 const app = express();
 config();
@@ -8,6 +9,7 @@ config();
 app.get("/", async (req, res) => {
 
     const totalLinks = await getLinkAmount();
+    const ipAddress = req.ip;
 
     res.json({
         "status": "ok",
@@ -18,7 +20,13 @@ app.get("/", async (req, res) => {
 
 })
 
-app.get("/add", async (req, res) => {
+app.get("/add", rateLimit({
+    windowMs: 60 * 1000,
+    limit: process.env.ADD_LIMIT_PERMINUTE,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: "You have exceeded your get quota. Please wait."
+}), async (req, res) => {
 
     const query = req.query;
 
@@ -60,7 +68,13 @@ app.get("/add", async (req, res) => {
     })
 })
 
-app.get("/get/:slug", async (req, res) => {
+app.get("/get/:slug", rateLimit({
+    windowMs: 60 * 1000,
+    limit: process.env.GET_LIMIT_PERMINUTE,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: "You have exceeded your get quota. Please wait."
+}), async (req, res) => {
 
     const slug = req.params.slug;
 
