@@ -2,6 +2,7 @@ import express from "express";
 import { config } from "dotenv";
 import { createSlug, getLinkAmount, getSlugUrl, isSlugExists } from "./functions/linkOperations.js";
 import { rateLimit } from "express-rate-limit";
+import { randomString } from "./functions/randomString.js";
 
 const app = express();
 config();
@@ -30,8 +31,23 @@ app.get("/add", rateLimit({
 
     const query = req.query;
 
-    const slug = query.slug;
+    let slug = query.slug;
     const url = query.url;
+
+    if (!slug) {
+
+        slug = await randomString(process.env.SLUG_LENGTH);
+
+    }
+
+    if (!url) {
+        
+        return res.json({
+            "status": "err",
+            "error": "Url must be defined."
+        })
+
+    }
 
     await isSlugExists(slug).then(async (isFound) => {
 
