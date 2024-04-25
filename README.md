@@ -47,3 +47,34 @@ but you have to change package.json as:
     "production": "node index.js"
 },
 ```
+After that, your service is running on your selected port!
+
+## Endpoints
+
+There is no that much endpoints.
+
+[host]:[port]/ -> returns:
+```
+{
+"status": String,
+"totalLinks": Integer,
+"author": String,
+"author_url": String
+}
+```
+
+[host]:[port]/add -> returns:
+```
+{
+    "status": String
+}
+```
+
+[host]:[port]/get -> returns:
+```
+{
+    "status": String,
+    "url": String
+}
+```
+
