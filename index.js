@@ -10,7 +10,6 @@ config();
 app.get("/", async (req, res) => {
 
     const totalLinks = await getLinkAmount();
-    const ipAddress = req.ip;
 
     res.json({
         "status": "ok",
@@ -60,10 +59,12 @@ app.get("/add", rateLimit({
 
         }
 
-        await createSlug(slug, url).then(() => {
+        await createSlug(slug, url).then((slug) => {
 
             res.json({
-                "status": "ok"
+                "status": "ok",
+                "slug": slug,
+                "localUrl": `http://${process.env.HOSTNAME}:31/get/${slug}`
             })
 
         }).catch((err) => {

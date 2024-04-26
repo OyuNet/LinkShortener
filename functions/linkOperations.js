@@ -131,7 +131,7 @@ export async function createSlug(slug, url) {
                         console.log(err);
                     }
                 });
-                resolve("Slug successfully created.");
+                resolve(slug);
 
             } catch (error) {
 
