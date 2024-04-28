@@ -1,6 +1,6 @@
 import express from "express";
 import { config } from "dotenv";
-import { createSlug, getLinkAmount, getSlugUrl, isSlugExists } from "./functions/linkOperations.js";
+import { createSlug, getAllSlugs, getLinkAmount, getSlugUrl, isSlugExists } from "./functions/linkOperations.js";
 import { rateLimit } from "express-rate-limit";
 import { randomString } from "./functions/randomString.js";
 
@@ -110,6 +110,32 @@ app.get("/get/:slug", rateLimit({
         })
 
     });    
+})
+
+app.get("/getAll", rateLimit({
+    windowMs: 60 * 1000,
+    limit: process.env.GETALL_LIMIT_PERMINUTE,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: "You have exceeded your get quota. Please wait."
+}), async (req, res) => {
+
+    await getAllSlugs().then((jsonData) => {
+
+        res.json({
+            "status": "ok",
+            "data": jsonData
+        })
+
+    }).catch((err) => {
+
+        res.json({
+            "status": "err",
+            "error": err
+        })
+
+    })
+
 })
 
 

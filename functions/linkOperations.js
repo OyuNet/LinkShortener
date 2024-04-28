@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "fs";
+import { resolve } from "path";
 
 export async function getLinkAmount() {
     return new Promise((resolve, reject) => {
@@ -132,6 +133,33 @@ export async function createSlug(slug, url) {
                     }
                 });
                 resolve(slug);
+
+            } catch (error) {
+
+                console.log(`Error while parsing JSON: ${error}`);
+                reject(error);
+
+            }
+
+        })
+    })
+}
+
+export async function getAllSlugs() {
+    return new Promise((resolve, reject) => {
+        readFile("./data/links.json", "utf8", (err, data) => {
+
+            if (err) {
+
+                return reject(err);
+
+            }
+
+            try {
+
+                let jsonData = JSON.parse(data);
+                
+                resolve(jsonData);
 
             } catch (error) {
 
