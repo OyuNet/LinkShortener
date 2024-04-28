@@ -28,6 +28,8 @@ ADD_LIMIT_PERMINUTE=5
 GET_LIMIT_PERMINUTE=60
 ADD_LIMIT_PERSECOND=1
 GET_LIMIT_PERSECOND=0
+GETALL_LIMIT_PERMINUTE=3
+HOSTNAME=localhost
 ```
 
 So, you are ready to run project.
@@ -49,7 +51,7 @@ but you have to change package.json as:
 ```
 After that, your service is running on your selected port!
 
-## Endpoints
+## Endpoints
 
 There is no that much endpoints.
 
@@ -63,14 +65,14 @@ There is no that much endpoints.
 }
 ```
 
-[host]:[port]/add -> returns:
+[host]:[port]/add | Params: slug (optional), url -> returns:
 ```
 {
     "status": String
 }
 ```
 
-[host]:[port]/get -> returns:
+[host]:[port]/get/:slug -> returns:
 ```
 {
     "status": String,
