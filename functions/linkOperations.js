@@ -1,5 +1,4 @@
 import { readFile, writeFile } from "fs";
-import { resolve } from "path";
 
 export async function getLinkAmount() {
     return new Promise((resolve, reject) => {
