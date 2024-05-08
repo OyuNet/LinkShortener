@@ -1,8 +1,8 @@
-import { readFile, writeFile } from "fs";
 import { genSalt, hash } from "bcrypt";
 import { randomBytes } from "crypto";
+import { readFile, writeFile } from "fs";
 
-const saltRounds = 10;
+const saltRounds = 12;
 
 export async function checkUser(username) {
   return new Promise((resolve, reject) => {
@@ -23,13 +23,18 @@ export async function checkUser(username) {
               }
               resolve(false);
             });
+            resolve(false);
           } catch (err) {
             reject(err);
           }
         });
-        let value;
-        await result.then((val) => (value = val));
-        resolve(value);
+        await result
+          .then((val) => {
+            resolve(val);
+          })
+          .catch((err) => {
+            reject(err);
+          });
       } catch (err) {
         reject(err);
       }
@@ -39,7 +44,7 @@ export async function checkUser(username) {
 
 export async function registerUser(username, password) {
   return new Promise(async (resolve, reject) => {
-    if (!(await checkUser(username))) {
+    if (await checkUser(username)) {
       reject("This username already exists.");
       return;
     }
@@ -50,55 +55,65 @@ export async function registerUser(username, password) {
         return;
       }
 
-      if (username || password) {
+      if (!username || !password) {
         reject("Username and password is not determined.");
         return;
       }
 
-      let hashedPassword;
-
-      genSalt(saltRounds, (err, salt) => {
-        if (err) {
-          return reject(err);
-        }
-
-        hash(password, salt, (err, hash) => {
+      const hashedPassword = new Promise(async (resolve, reject) => {
+        genSalt(saltRounds, async (err, salt) => {
           if (err) {
-            return reject(err);
+            reject(err);
+            return;
           }
 
-          hashedPassword = hash;
+          hash(password, salt, async (err, hash) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            resolve(hash);
+          });
         });
       });
 
-      if (!hashedPassword) {
-        return reject("There is no valid hashed password.");
-      }
+      await hashedPassword
+        .then((passwordHash) => {
+          if (!passwordHash) {
+            reject("There is no valid hashed password.");
+            return;
+          }
 
-      const newUser = {
-        username: username,
-        password: hashedPassword,
-      };
+          const newUser = {
+            username: username,
+            password: passwordHash,
+          };
 
-      const jsonData = JSON.parse(data);
+          const jsonData = JSON.parse(data);
 
-      jsonData.push(newUser);
+          jsonData.push(newUser);
 
-      try {
-        writeFile(
-          "./data/userlist.json",
-          JSON.stringify(jsonData, null, 2),
-          (err) => {
+          try {
+            writeFile(
+              "./data/userlist.json",
+              JSON.stringify(jsonData, null, 2),
+              (err) => {
+                reject(err);
+                return;
+              },
+            );
+
+            resolve(true);
+          } catch (err) {
             reject(err);
             return;
-          },
-        );
-
-        resolve(true);
-      } catch (err) {
-        reject(err);
-        return;
-      }
+          }
+        })
+        .catch((err) => {
+          reject(err);
+          return;
+        });
     });
   });
 }
@@ -126,20 +141,78 @@ export async function isTokenExists(token) {
   });
 }
 
-export async function generateAuthToken(username, password) {
-  // It maybe looks like a just token function but in reality
-  // I made this function to login registered users. So basically,
+export async function loginUser(username, password) {
   return new Promise(async (resolve, reject) => {
-    // it works like login function. No need any other things.
+    readFile("./data/userlist.json", "utf8", async (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      const jsonData = JSON.parse(data);
+      let isUserExists;
+
+      await checkUser(username)
+        .then((response) => {
+          isUserExists = response;
+        })
+        .catch((err) => {
+          reject(err);
+          return;
+        });
+
+      if (!isUserExists) {
+        reject("User is not exists.");
+        return;
+      }
+
+      let isAuth;
+      jsonData.map((obj) => {
+        if (obj.username == username) {
+          let hashedPassword;
+
+          genSalt(saltRounds, (err, salt) => {
+            if (err) {
+              return reject(err);
+            }
+
+            hash(password, salt, (err, hash) => {
+              if (err) {
+                return reject(err);
+              }
+
+              hashedPassword = hash;
+            });
+          });
+
+          if (obj.password == hashedPassword) {
+            isAuth = true;
+          }
+        }
+      });
+
+      !isAuth ? resolve(false) : resolve(true);
+    });
+  });
+}
+
+export async function generateAuthToken(username, password) {
+  return new Promise(async (resolve, reject) => {
     let response;
 
-    await checkUser(username)
+    await loginUser(username, password)
       .then((result) => {
         response = result;
       })
-      .catch((error) => {
-        reject(error);
+      .catch((err) => {
+        reject(err);
+        return;
       });
+
+    if (!response) {
+      reject("User exists but its's password is not true.");
+      return;
+    }
 
     let token = randomBytes(32).toString("hex");
 
@@ -173,6 +246,6 @@ export async function generateAuthToken(username, password) {
       );
     });
 
-    return token;
+    resolve(token);
   });
 }
