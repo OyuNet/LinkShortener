@@ -1,4 +1,4 @@
-import { genSalt, hash } from "bcrypt";
+import { genSalt, hash, compare } from "bcrypt";
 import { randomBytes } from "crypto";
 import { readFile, writeFile } from "fs";
 
@@ -128,7 +128,7 @@ export async function isTokenExists(token) {
 
       const jsonData = JSON.parse(data);
 
-      let response = undefined;
+      let response;
 
       jsonData.map((obj) => {
         if (obj.token == token) {
@@ -149,49 +149,32 @@ export async function loginUser(username, password) {
         return;
       }
 
-      const jsonData = JSON.parse(data);
-      let isUserExists;
-
       await checkUser(username)
         .then((response) => {
-          isUserExists = response;
+          if (!response) {
+            reject("User is not exists.");
+            return;
+          }
         })
         .catch((err) => {
           reject(err);
           return;
         });
 
-      if (!isUserExists) {
-        reject("User is not exists.");
-        return;
-      }
+      const jsonData = JSON.parse(data);
 
-      let isAuth;
       jsonData.map((obj) => {
         if (obj.username == username) {
-          let hashedPassword;
-
-          genSalt(saltRounds, (err, salt) => {
+          compare(password, obj.password, (err, result) => {
             if (err) {
-              return reject(err);
+              reject(err);
+              return;
             }
 
-            hash(password, salt, (err, hash) => {
-              if (err) {
-                return reject(err);
-              }
-
-              hashedPassword = hash;
-            });
+            resolve(result);
           });
-
-          if (obj.password == hashedPassword) {
-            isAuth = true;
-          }
         }
       });
-
-      !isAuth ? resolve(false) : resolve(true);
     });
   });
 }
