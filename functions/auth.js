@@ -197,29 +197,106 @@ export async function generateAuthToken(username, password) {
       return;
     }
 
-    let token = randomBytes(32).toString("hex");
+    await isUserGeneratedToken(username).then(async (token) => {
+      if (!token) {
+        return;
+      }
 
-    while (await isTokenExists(token)) {
-      token = randomBytes(32).toString("hex");
-    }
+      await removeToken(token)
+        .then(async (result) => {
+          if (!result) {
+            reject("Token remove operation failed.");
+            return;
+          }
 
-    readFile("./data/tokens.json", "utf8", async (err, data) => {
+          let token = randomBytes(32).toString("hex");
+
+          while (await isTokenExists(token)) {
+            token = randomBytes(32).toString("hex");
+          }
+
+          readFile("./data/tokens.json", "utf8", async (err, data) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            const jsonData = JSON.parse(data);
+            const obj = {
+              token: token,
+              username: username,
+            };
+
+            jsonData.push(obj);
+
+            writeFile(
+              "./data/tokens.json",
+              JSON.stringify(jsonData, null, 2),
+              (err) => {
+                if (err) {
+                  reject(err);
+                  return;
+                }
+              },
+            );
+          });
+
+          resolve(token);
+        })
+        .catch((err) => {
+          reject(err);
+          return;
+        });
+    });
+  });
+}
+
+export async function isUserGeneratedToken(username) {
+  return new Promise((resolve, reject) => {
+    readFile("./data/tokens.json", "utf8", (err, data) => {
       if (err) {
         reject(err);
         return;
       }
 
       const jsonData = JSON.parse(data);
-      const obj = {
-        token: token,
-        username: username,
-      };
 
-      jsonData.push(obj);
+      const token = new Promise((resolve) => {
+        jsonData.map((obj) => {
+          if (obj.username == username) {
+            resolve(obj.token);
+            return;
+          }
+        });
+      });
+
+      token.then((token) => {
+        resolve(token);
+      });
+    });
+  });
+}
+
+export async function removeToken(token) {
+  return new Promise((resolve, reject) => {
+    readFile("./data/tokens.json", "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      const jsonData = JSON.parse(data);
+      const newData = [];
+
+      jsonData.map((obj) => {
+        if (obj.token != token) {
+          newData.push(obj);
+        }
+      });
 
       writeFile(
         "./data/tokens.json",
-        JSON.stringify(jsonData, null, 2),
+        JSON.stringify(newData, null, 2),
         (err) => {
           if (err) {
             reject(err);
@@ -227,8 +304,8 @@ export async function generateAuthToken(username, password) {
           }
         },
       );
-    });
 
-    resolve(token);
+      resolve(true);
+    });
   });
 }
