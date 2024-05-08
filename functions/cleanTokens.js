@@ -4,9 +4,12 @@ import { writeFile } from "fs";
  * @returns {boolean}
  */
 export default async function cleanTokens() {
-    writeFile("./data/tokens.json", "[]", (err) => {
-        return false;
-    })
+  writeFile("./data/tokens.json", "[]", (err) => {
+    if (err) {
+      throw err;
+    }
+    return false;
+  });
 
-    return true;
+  return true;
 }

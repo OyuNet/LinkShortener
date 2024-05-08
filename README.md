@@ -58,10 +58,10 @@ There is no that much endpoints.
 [host]:[port]/ -> returns:
 ```
 {
-"status": String,
-"totalLinks": Integer,
-"author": String,
-"author_url": String
+    "status": String,
+    "totalLinks": Integer,
+    "author": String,
+    "author_url": String
 }
 ```
 
@@ -77,6 +77,19 @@ There is no that much endpoints.
 {
     "status": String,
     "url": String
+}
+```
+
+[host]:[port]/getAll -> returns:
+```
+{
+    "status": String,
+    "data": [
+        {
+            "slug": String,
+            "url": String
+        }
+    ]
 }
 ```
 

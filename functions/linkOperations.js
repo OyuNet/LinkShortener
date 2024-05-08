@@ -1,172 +1,129 @@
 import { readFile, writeFile } from "fs";
 
 export async function getLinkAmount() {
-    return new Promise((resolve, reject) => {
-        readFile("./data/links.json", "utf8", (err, data) => {
+  return new Promise((resolve, reject) => {
+    readFile("./data/links.json", "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
 
-            if (err) {
-
-                reject(err);
-                return;
-
-            }
-
-            try {
-
-                const jsonData = JSON.parse(data);
-                resolve(jsonData.length);
-
-            } catch (error) {
-
-                console.log(`Error while parsing JSON: ${error}`);
-                reject(error);
-
-            }
-        });
+      try {
+        const jsonData = JSON.parse(data);
+        resolve(jsonData.length);
+      } catch (error) {
+        console.log(`Error while parsing JSON: ${error}`);
+        reject(error);
+      }
     });
+  });
 }
 
 export async function getSlugUrl(slug) {
-    return new Promise((resolve, reject) => {
-        readFile("./data/links.json", "utf8", (err, data) => {
+  return new Promise((resolve, reject) => {
+    readFile("./data/links.json", "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
 
-            if (err) {
+      try {
+        const jsonData = JSON.parse(data);
 
-                reject(err);
-                return;
+        let isFound = false;
+        jsonData.map((x) => {
+          if (x.slug == slug) {
+            resolve(x.url);
+            isFound = true;
+          }
+        });
 
-            }
-
-            try {
-
-                const jsonData = JSON.parse(data);
-
-                let isFound = false;
-                jsonData.map((x) => {
-
-                    if (x.slug == slug) {
-
-                        resolve(x.url);
-                        isFound = true;
-
-                    }
-
-                })
-
-                if (!isFound) {
-
-                    reject("Link not exists.");
-
-                }
-
-            } catch (error) {
-
-                console.log(`Error while parsing JSON: ${error}`);
-                reject(error);
-
-            }
-        })
-    })
+        if (!isFound) {
+          reject("Link not exists.");
+        }
+      } catch (error) {
+        console.log(`Error while parsing JSON: ${error}`);
+        reject(error);
+      }
+    });
+  });
 }
 
 export async function isSlugExists(slug) {
-    return new Promise((resolve, reject) => {
-        readFile("./data/links.json", "utf8", (err, data) => {
+  return new Promise((resolve, reject) => {
+    readFile("./data/links.json", "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
 
-            if (err) {
+      try {
+        const jsonData = JSON.parse(data);
+        let isFound = false;
 
-                reject(err);
-                return;
+        jsonData.map((x) => {
+          if (x.slug == slug) {
+            isFound = true;
+          }
+        });
 
-            }
-
-            try {
-
-                const jsonData = JSON.parse(data);
-                let isFound = false;
-
-                jsonData.map((x) => {
-
-                    if (x.slug == slug) {
-
-                        isFound = true;
-
-                    }
-
-                })
-
-                resolve(isFound);
-
-            } catch (error) {
-
-                console.log(`Error while parsing JSON: ${error}`);
-                reject(error);
-
-            }
-        })
-    })
+        resolve(isFound);
+      } catch (error) {
+        console.log(`Error while parsing JSON: ${error}`);
+        reject(error);
+      }
+    });
+  });
 }
 
 export async function createSlug(slug, url) {
-    return new Promise((resolve, reject) => {
-        readFile("./data/links.json", "utf8", (err, data) => {
+  return new Promise((resolve, reject) => {
+    readFile("./data/links.json", "utf8", (err, data) => {
+      if (err) {
+        return reject(err);
+      }
 
+      try {
+        let jsonData = JSON.parse(data);
+
+        jsonData.push({
+          slug: slug,
+          url: url,
+        });
+
+        writeFile(
+          "./data/links.json",
+          JSON.stringify(jsonData, null, 2),
+          (err) => {
             if (err) {
-
-                return reject(err);
-
+              console.log(err);
             }
-
-            try {
-
-                let jsonData = JSON.parse(data);
-                
-                jsonData.push({
-                    "slug": slug,
-                    "url": url
-                })
-                
-                writeFile("./data/links.json", JSON.stringify(jsonData), (err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-                resolve(slug);
-
-            } catch (error) {
-
-                console.log(`Error while parsing JSON: ${error}`);
-                reject(error);
-
-            }
-
-        })
-    })
+          },
+        );
+        resolve(slug);
+      } catch (error) {
+        console.log(`Error while parsing JSON: ${error}`);
+        reject(error);
+      }
+    });
+  });
 }
 
 export async function getAllSlugs() {
-    return new Promise((resolve, reject) => {
-        readFile("./data/links.json", "utf8", (err, data) => {
+  return new Promise((resolve, reject) => {
+    readFile("./data/links.json", "utf8", (err, data) => {
+      if (err) {
+        return reject(err);
+      }
 
-            if (err) {
+      try {
+        let jsonData = JSON.parse(data);
 
-                return reject(err);
-
-            }
-
-            try {
-
-                let jsonData = JSON.parse(data);
-                
-                resolve(jsonData);
-
-            } catch (error) {
-
-                console.log(`Error while parsing JSON: ${error}`);
-                reject(error);
-
-            }
-
-        })
-    })
+        resolve(jsonData);
+      } catch (error) {
+        console.log(`Error while parsing JSON: ${error}`);
+        reject(error);
+      }
+    });
+  });
 }
