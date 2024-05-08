@@ -12,6 +12,9 @@ import { rateLimit } from "express-rate-limit";
 import { randomString } from "./functions/randomString.js";
 import cleanTokens from "./functions/cleanTokens.js";
 import { generateAuthToken, registerUser } from "./functions/auth.js";
+import { initialize } from "./functions/initalize.js";
+
+initialize();
 
 const app = express();
 config();
